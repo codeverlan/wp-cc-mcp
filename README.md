@@ -334,15 +334,178 @@ If a port is already in use, choose a different port when creating the project.
 - MCP server logs to stderr
 - Docker logs: `docker-compose logs -f`
 
+## SiteGround Integration
+
+### Overview
+This MCP server now includes full integration with SiteGround's native Git functionality, allowing seamless deployment from local Docker development to SiteGround hosting.
+
+### Setting Up SiteGround Integration
+
+#### 1. Create WordPress Installation on SiteGround
+- Log into SiteGround Site Tools
+- Create a new WordPress installation
+- Enable Git for the installation (creates a Git repository)
+- Note the SSH credentials provided (example: `ssh://u1836-xxxxx@gvam1275.siteground.biz:18765/home/customer/www/domain.com/public_html/`)
+
+#### 2. SSH Key Setup
+**Important**: You need to set up SSH keys for passwordless authentication:
+
+1. Generate an SSH key pair if you don't have one:
+```bash
+ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
+```
+
+2. Add your public key to SiteGround:
+   - Go to Site Tools → SSH Keys Manager
+   - Click "Import" to add an existing key, or "Generate" to create a new one
+   - If importing, paste your public key (`~/.ssh/id_rsa.pub`)
+   - Authorize the key for your account
+
+3. Test the connection:
+```bash
+ssh -p 18765 u1836-xxxxx@gvam1275.siteground.biz
+```
+
+#### 3. Connect Your Project
+```javascript
+wp_siteground_connect(
+  "my-project",
+  "gvam1275.siteground.biz",
+  "u1836-xxxxx",
+  "home/customer/www/domain.com/public_html",
+  "https://domain.com"
+)
+```
+
+### SiteGround-Specific Tools
+
+#### `wp_siteground_connect`
+Connect a local WordPress project to SiteGround Git repository.
+- **Parameters:**
+  - `project`: Local project name
+  - `sshHost`: SiteGround server (e.g., gvam1275.siteground.biz)
+  - `sshUser`: SSH username (e.g., u1836-xxxxx)
+  - `repoPath`: Repository path (e.g., home/customer/www/domain.com/public_html)
+  - `siteUrl`: Optional live site URL
+
+#### `wp_siteground_deploy`
+Deploy your project to SiteGround with a single command.
+- **Parameters:**
+  - `project`: Project name to deploy
+  - `branch`: Branch to deploy (default: master)
+  - `clearCache`: Clear SiteGround cache after deployment (default: true)
+  - `skipDatabaseDump`: Skip database backup (default: false)
+  - `message`: Optional commit message
+
+#### `wp_siteground_sync`
+Pull changes from SiteGround (useful for syncing live changes).
+- **Parameters:**
+  - `project`: Project name
+  - `branch`: Branch to sync (default: master)
+
+#### `wp_siteground_cache_clear`
+Clear SiteGround's cache via SSH.
+- **Parameters:**
+  - `project`: Project name
+
+#### `wp_siteground_info`
+Get deployment information for a project.
+- **Parameters:**
+  - `project`: Project name
+
+### Deployment Workflow
+
+#### Complete Setup Example
+```javascript
+// 1. Create a new WordPress project
+wp_create_project("tylerhorn", 8085)
+
+// 2. Connect to SiteGround
+wp_siteground_connect(
+  "tylerhorn",
+  "gvam1275.siteground.biz",
+  "u1836-0gj8kch3wtnk",
+  "home/customer/www/tylerhorn.com/public_html",
+  "https://tylerhorn.com"
+)
+
+// 3. Develop your site locally
+// (Make theme changes, install plugins, etc.)
+
+// 4. Deploy to SiteGround
+wp_siteground_deploy("tylerhorn", {
+  message: "Initial deployment",
+  clearCache: true
+})
+```
+
+#### Continuous Deployment
+```javascript
+// Make local changes
+wp_git_commit("tylerhorn", "Updated homepage design")
+
+// Deploy to production
+wp_siteground_deploy("tylerhorn")
+
+// Or sync from production
+wp_siteground_sync("tylerhorn")
+```
+
+### SiteGround .gitignore
+The system automatically creates a SiteGround-optimized `.gitignore` that excludes:
+- WordPress core files (managed by SiteGround)
+- Upload directories
+- Cache directories
+- Database dumps
+- Environment-specific configurations
+
+Default excludes from SiteGround:
+```
+wp-content/upgrade/*
+wp-content/backup-db/*
+wp-content/cache/*
+wp-content/cache/supercache/*
+wp-content/w3tc-cache/*
+```
+
+### Database Management with SiteGround
+
+When deploying database changes:
+
+1. **Before deployment**: Database is automatically dumped
+2. **After deployment**: SSH into SiteGround and import:
+```bash
+ssh -p 18765 u1836-xxxxx@server.siteground.biz
+cd ~/public_html
+wp db import migrations/latest.sql
+```
+
+### Troubleshooting SiteGround Integration
+
+#### SSH Connection Issues
+- Ensure your SSH key is added to SiteGround's SSH Keys Manager
+- Verify the key is authorized for your account
+- Check that port 18765 is not blocked by your firewall
+
+#### Git Push Failures
+- Verify your local changes are committed
+- Check that the SiteGround repository exists
+- Ensure you have write permissions to the repository
+
+#### Cache Not Clearing
+- The WP-CLI command `wp sg purge` requires SiteGround Optimizer plugin
+- Manual cache clearing can be done through Site Tools
+
 ## Comparison with Original wp-cc
 
 This MCP implementation **simplifies** the original wp-cc by:
-- ✅ Removing SSH/SCP dependencies
+- ✅ Removing SSH/SCP dependencies (except for SiteGround Git)
 - ✅ Removing Digital Ocean API complexity
 - ✅ Using Git for deployment (industry standard)
 - ✅ Adding proper database versioning
 - ✅ Supporting multiple projects
-- ✅ Working with any Git-capable host
+- ✅ Direct integration with SiteGround's native Git
+- ✅ Automated cache management for SiteGround
 
 ## License
 

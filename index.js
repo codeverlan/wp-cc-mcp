@@ -13,6 +13,7 @@ import { DatabaseManager } from './lib/database-manager.js';
 import { ProjectManager } from './lib/project-manager.js';
 import { GitManager } from './lib/git-manager.js';
 import { ResearchManager } from './lib/research-manager.js';
+import { SiteGroundManager } from './lib/siteground-manager.js';
 
 class WordPressDevServer {
   constructor() {
@@ -23,6 +24,7 @@ class WordPressDevServer {
     this.projectManager = new ProjectManager();
     this.gitManager = new GitManager();
     this.researchManager = new ResearchManager();
+    this.sitegroundManager = new SiteGroundManager();
 
     // Initialize MCP server
     this.server = new Server(
@@ -485,6 +487,118 @@ class WordPressDevServer {
             required: ['project', 'config'],
           },
         },
+
+        // SiteGround Integration
+        {
+          name: 'wp_siteground_connect',
+          description: 'Connect a project to SiteGround Git repository',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+              sshHost: {
+                type: 'string',
+                description: 'SiteGround SSH hostname (e.g., eu1.siteground.eu)',
+              },
+              sshUser: {
+                type: 'string',
+                description: 'SiteGround SSH username',
+              },
+              repoPath: {
+                type: 'string',
+                description: 'Git repository path on SiteGround (e.g., mydomain.com)',
+              },
+              siteUrl: {
+                type: 'string',
+                description: 'Optional: Live site URL',
+              },
+            },
+            required: ['project', 'sshHost', 'sshUser', 'repoPath'],
+          },
+        },
+        {
+          name: 'wp_siteground_deploy',
+          description: 'Deploy project to SiteGround via Git push',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+              branch: {
+                type: 'string',
+                description: 'Branch to deploy (default: master)',
+                default: 'master',
+              },
+              clearCache: {
+                type: 'boolean',
+                description: 'Clear SiteGround cache after deployment',
+                default: true,
+              },
+              skipDatabaseDump: {
+                type: 'boolean',
+                description: 'Skip database dump before deployment',
+                default: false,
+              },
+              message: {
+                type: 'string',
+                description: 'Optional commit message',
+              },
+            },
+            required: ['project'],
+          },
+        },
+        {
+          name: 'wp_siteground_sync',
+          description: 'Pull changes from SiteGround repository',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+              branch: {
+                type: 'string',
+                description: 'Branch to sync (default: master)',
+                default: 'master',
+              },
+            },
+            required: ['project'],
+          },
+        },
+        {
+          name: 'wp_siteground_cache_clear',
+          description: 'Clear SiteGround cache via SSH',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+            },
+            required: ['project'],
+          },
+        },
+        {
+          name: 'wp_siteground_info',
+          description: 'Get SiteGround deployment information for a project',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+            },
+            required: ['project'],
+          },
+        },
       ],
     }));
 
@@ -539,6 +653,31 @@ class WordPressDevServer {
             return await this.gitManager.commit(args.project, args.message);
           case 'wp_prepare_deployment':
             return await this.gitManager.prepareDeployment(args.project);
+
+          // SiteGround Integration
+          case 'wp_siteground_connect':
+            return await this.sitegroundManager.connectProject(
+              args.project,
+              args.sshHost,
+              args.sshUser,
+              args.repoPath,
+              args.siteUrl
+            );
+          case 'wp_siteground_deploy':
+            return await this.sitegroundManager.deploy(args.project, {
+              branch: args.branch,
+              clearCache: args.clearCache,
+              skipDatabaseDump: args.skipDatabaseDump,
+              message: args.message,
+            });
+          case 'wp_siteground_sync':
+            return await this.sitegroundManager.sync(args.project, {
+              branch: args.branch,
+            });
+          case 'wp_siteground_cache_clear':
+            return await this.sitegroundManager.clearCache(args.project);
+          case 'wp_siteground_info':
+            return await this.sitegroundManager.getDeploymentInfo(args.project);
 
           // Research Tools
           case 'wp_research_topic':
