@@ -1,0 +1,30 @@
+{
+  "name": "wp-cc-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for WordPress development with Docker to Git to SiteGround pipeline",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "mcp",
+    "wordpress",
+    "docker",
+    "claude-code",
+    "development"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "better-sqlite3": "^11.6.0",
+    "dotenv": "^16.4.7",
+    "execa": "^9.5.2",
+    "fs-extra": "^11.2.0",
+    "node-fetch": "^3.3.2",
+    "simple-git": "^3.27.0",
+    "winston": "^3.17.0"
+  }
+}
