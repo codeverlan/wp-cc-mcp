@@ -146,6 +146,47 @@ Edit `~/.claude/settings.local.json`:
 | `wp_install_plugin` | Install WordPress plugin | `project`, `source`, `activate` |
 | `wp_configure` | Update WordPress configuration | `project`, `settings` |
 
+## 📄 HTML Content Templates
+
+The `wp_generate_content` tool supports the following templates for generating HTML content:
+
+| Template | Description | Required Data Fields | Optional Data Fields |
+|----------|-------------|---------------------|---------------------|
+| `directory_listing` | Creates a directory of items/services | `items[]` (array of objects with `name`, `description`, `link`) | `title` |
+| `location_page` | Location-specific service page | `location` | `services[]` |
+| `category_page` | Category listing page | `category` | `description`, `items[]` |
+| `review_page` | Business review showcase | `business`, `reviews[]` (array with `rating`, `text`, `author`) | - |
+| `generic` | Fallback template for any data | Any JSON data | - |
+
+### Template Usage Example
+```javascript
+// Generate a directory listing
+wp_generate_content("my-site", "directory_listing", {
+  title: "Top AI Tools Directory",
+  items: [
+    { name: "Tool 1", description: "AI writing assistant", link: "/tool-1" },
+    { name: "Tool 2", description: "Image generator", link: "/tool-2" }
+  ]
+})
+
+// Generate a location page
+wp_generate_content("my-site", "location_page", {
+  location: "Seattle",
+  services: ["Web Design", "SEO", "Digital Marketing"]
+})
+
+// Generate a review page
+wp_generate_content("my-site", "review_page", {
+  business: "ACME Corp",
+  reviews: [
+    { rating: 5, text: "Excellent service!", author: "John D." },
+    { rating: 4, text: "Very professional", author: "Jane S." }
+  ]
+})
+```
+
+Generated HTML files are saved to: `generated-content/{template}_{timestamp}.html`
+
 ## Workflow Examples
 
 ### Complete Project Lifecycle
