@@ -6,33 +6,37 @@ An MCP (Model Context Protocol) server for managing WordPress development with a
 
 This MCP server provides comprehensive WordPress development tools that enable Claude Code to:
 - Create and manage multiple WordPress projects locally using Docker
-- Version control everything with Git
-- Prepare deployments for SiteGround hosting
-- Research and generate content using AI tools
+- Perform exhaustive testing with zero 404 tolerance
+- Research and generate content using AI tools (Jina AI, Unsplash)
 - Manage databases with migration tracking
+- Deploy seamlessly to SiteGround hosting
+- Validate SEO implementation and content quality
 
 ## Architecture
 
 ```
 Local Development (Docker) → Version Control (Git) → Production (SiteGround)
        ↑                           ↑                        ↑
-    MCP Server              Automatic Commits         Manual Deploy
+    MCP Server              Automatic Commits         Git Push Deploy
+       ↑                           ↑                        ↑
+Testing & Validation      Research & Content        Cache Management
 ```
 
 ## Installation
 
 ### Prerequisites
-
-- Docker and Docker Compose installed
-- Node.js 18+ installed
-- Git installed
+- Docker and Docker Compose
+- Node.js 18+
+- Git
 - Claude Code with MCP support
+- Optional: Playwright for testing features
 
 ### Setup
 
 1. **Clone the repository:**
 ```bash
-cd /home/thornlcsw/docker/wp-cc-mcp
+git clone https://github.com/codeverlan/wp-cc-mcp.git
+cd wp-cc-mcp
 ```
 
 2. **Install dependencies:**
@@ -43,7 +47,7 @@ npm install
 3. **Configure environment variables:**
 Create a `.env` file:
 ```env
-# Optional: For research features
+# Optional: For AI research features
 JINA_API_KEY=your_jina_api_key
 UNSPLASH_API_KEY=your_unsplash_api_key
 ```
@@ -55,7 +59,7 @@ Edit `~/.claude/settings.local.json`:
   "mcpServers": {
     "wp-cc-mcp": {
       "command": "node",
-      "args": ["/home/thornlcsw/docker/wp-cc-mcp/index.js"],
+      "args": ["/path/to/wp-cc-mcp/index.js"],
       "env": {
         "JINA_API_KEY": "your_key",
         "UNSPLASH_API_KEY": "your_key"
@@ -65,447 +69,245 @@ Edit `~/.claude/settings.local.json`:
 }
 ```
 
-## Available Tools
+## Complete Tool Reference
 
-### Project Management
+### 📁 Project Management Tools
 
-#### `wp_create_project`
-Create a new WordPress project with Docker and Git.
-- **Parameters:**
-  - `name`: Project name (alphanumeric and hyphens only)
-  - `port`: Local port for WordPress (e.g., 8081)
-  - `gitRemote`: Optional Git remote URL
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `wp_create_project` | Create new WordPress project with Docker and Git | `name`, `port`, `gitRemote` (optional) |
+| `wp_list_projects` | List all WordPress projects with status | none |
+| `wp_switch_project` | Switch between projects (stops current, starts target) | `name` |
+| `wp_delete_project` | Delete a WordPress project | `name`, `deleteFiles` (optional) |
 
-#### `wp_list_projects`
-List all WordPress projects with their status.
+### 🐳 Docker Management Tools
 
-#### `wp_switch_project`
-Switch between projects (stops current, starts target).
-- **Parameters:**
-  - `name`: Project name to switch to
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `wp_start` | Start Docker containers for a project | `project` |
+| `wp_stop` | Stop Docker containers for a project | `project` |
+| `wp_restart` | Restart Docker containers for a project | `project` |
+| `wp_logs` | View Docker container logs | `project`, `service`, `lines` |
 
-#### `wp_delete_project`
-Delete a WordPress project.
-- **Parameters:**
-  - `name`: Project name to delete
-  - `deleteFiles`: Also delete project files (default: false)
+### 💾 Database Management Tools
 
-### Docker Management
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `wp_db_dump` | Export database with migration tracking | `project`, `message` |
+| `wp_db_diff` | Generate migration script from changes | `project` |
+| `wp_db_import` | Import SQL file to database | `project`, `file` |
+| `wp_db_reset` | Reset database from migrations | `project` |
 
-#### `wp_start`
-Start Docker containers for a project.
-- **Parameters:**
-  - `project`: Project name
+### 🔄 Git Operations Tools
 
-#### `wp_stop`
-Stop Docker containers for a project.
-- **Parameters:**
-  - `project`: Project name
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `wp_git_status` | Check Git status for a project | `project` |
+| `wp_git_commit` | Commit changes to Git | `project`, `message` |
+| `wp_prepare_deployment` | Prepare for deployment (dump DB, check Git) | `project` |
 
-#### `wp_restart`
-Restart Docker containers for a project.
-- **Parameters:**
-  - `project`: Project name
+### 🌐 SiteGround Integration Tools
 
-#### `wp_logs`
-View Docker container logs.
-- **Parameters:**
-  - `project`: Project name
-  - `service`: Service name (wordpress or db)
-  - `lines`: Number of log lines to show
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `wp_siteground_connect` | Connect project to SiteGround Git repository | `project`, `sshHost`, `sshUser`, `repoPath`, `siteUrl` |
+| `wp_siteground_deploy` | Deploy via Git push to SiteGround | `project`, `branch`, `clearCache`, `skipDatabaseDump`, `message` |
+| `wp_siteground_sync` | Pull changes from SiteGround repository | `project`, `branch` |
+| `wp_siteground_cache_clear` | Clear SiteGround cache via SSH | `project` |
+| `wp_siteground_info` | Get deployment information | `project` |
 
-### Database Management
+### 🧪 Testing & Validation Tools
 
-#### `wp_db_dump`
-Export database to SQL file with migration tracking.
-- **Parameters:**
-  - `project`: Project name
-  - `message`: Migration message/description
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `wp_test_all_links` | Test all links for 404 errors | `project` |
+| `wp_test_seo` | Validate SEO implementation (meta tags, H1, schema) | `project` |
+| `wp_test_comprehensive` | Run complete test suite and generate report | `project` |
+| `wp_test_report` | Generate human-readable test report | `project` |
 
-#### `wp_db_diff`
-Generate migration script from database changes.
-- **Parameters:**
-  - `project`: Project name
+### 🔍 Research & Content Tools (AI-Powered)
 
-#### `wp_db_import`
-Import SQL file to database.
-- **Parameters:**
-  - `project`: Project name
-  - `file`: SQL file path (relative to project)
+| Tool | Description | Parameters | Requirements |
+|------|-------------|------------|--------------|
+| `wp_research_topic` | Basic topic research using Jina AI | `project`, `query` | JINA_API_KEY |
+| `wp_research_exhaustive` | Comprehensive multi-query research | `project`, `query` | JINA_API_KEY |
+| `wp_validate_research` | Validate research data completeness | `project`, `dataFile` | none |
+| `wp_scrape_site` | Scrape content from a website | `project`, `url` | none |
+| `wp_find_images` | Download images from Unsplash | `project`, `topic`, `count` | UNSPLASH_API_KEY |
+| `wp_generate_content` | Generate HTML content from templates | `project`, `template`, `data` | none |
+| `wp_import_json` | Import JSON data to WordPress | `project`, `file` | none |
+| `wp_generate_seo_pages` | Generate SEO-optimized location/category pages | `project`, `config` | none |
 
-#### `wp_db_reset`
-Reset database by applying all migrations from scratch.
-- **Parameters:**
-  - `project`: Project name
+### 🎨 WordPress Development Tools
 
-### WordPress Development
-
-#### `wp_install_theme`
-Install a WordPress theme.
-- **Parameters:**
-  - `project`: Project name
-  - `source`: Theme source (path, URL, or slug)
-  - `activate`: Activate theme after installation
-
-#### `wp_install_plugin`
-Install a WordPress plugin.
-- **Parameters:**
-  - `project`: Project name
-  - `source`: Plugin source (path, slug, or URL)
-  - `activate`: Activate plugin after installation
-
-#### `wp_configure`
-Update WordPress configuration.
-- **Parameters:**
-  - `project`: Project name
-  - `settings`: Configuration settings object
-
-### Git Operations
-
-#### `wp_git_status`
-Check Git status for a project.
-- **Parameters:**
-  - `project`: Project name
-
-#### `wp_git_commit`
-Commit changes to Git.
-- **Parameters:**
-  - `project`: Project name
-  - `message`: Commit message
-
-#### `wp_prepare_deployment`
-Prepare project for deployment (dump DB, check Git, create checklist).
-- **Parameters:**
-  - `project`: Project name
-
-### Research Tools (Phase 2)
-
-#### `wp_research_topic`
-Research a topic using Jina AI.
-- **Parameters:**
-  - `project`: Project name
-  - `query`: Research query
-
-#### `wp_scrape_site`
-Scrape content from a website.
-- **Parameters:**
-  - `project`: Project name
-  - `url`: URL to scrape
-
-#### `wp_find_images`
-Find and download images from Unsplash.
-- **Parameters:**
-  - `project`: Project name
-  - `topic`: Image search topic
-  - `count`: Number of images to download
-
-#### `wp_generate_content`
-Generate content from research data.
-- **Parameters:**
-  - `project`: Project name
-  - `template`: Content template type
-  - `data`: Data for content generation
-
-#### `wp_import_json`
-Import JSON data to create WordPress content.
-- **Parameters:**
-  - `project`: Project name
-  - `file`: JSON file path
-
-#### `wp_generate_seo_pages`
-Generate SEO-optimized location/category pages.
-- **Parameters:**
-  - `project`: Project name
-  - `config`: SEO configuration with locations and categories
+| Tool | Description | Parameters |
+|------|-------------|------------|
+| `wp_install_theme` | Install WordPress theme | `project`, `source`, `activate` |
+| `wp_install_plugin` | Install WordPress plugin | `project`, `source`, `activate` |
+| `wp_configure` | Update WordPress configuration | `project`, `settings` |
 
 ## Workflow Examples
 
-### 1. Create a New WordPress Project
-```
-1. wp_create_project("my-site", 8081, "git@github.com:user/my-site.git")
-2. Project is created with WordPress, Docker starts, Git initialized
-3. Access at http://localhost:8081
+### Complete Project Lifecycle
+```javascript
+// 1. Create project
+wp_create_project("my-blog", 8082)
+
+// 2. Research content (if using AI features)
+wp_research_exhaustive("my-blog", "sustainable living tips")
+wp_validate_research("my-blog", "research/data.json")
+wp_find_images("my-blog", "sustainable living", 20)
+
+// 3. Develop
+wp_install_theme("my-blog", "twentytwentyfour", true)
+wp_install_plugin("my-blog", "yoast-seo", true)
+
+// 4. Test thoroughly
+wp_test_comprehensive("my-blog")
+wp_test_report("my-blog")
+
+// 5. Deploy to SiteGround
+wp_siteground_connect("my-blog", "server.siteground.biz", "user", "path", "https://myblog.com")
+wp_siteground_deploy("my-blog")
 ```
 
-### 2. Develop a Custom Theme
-```
-1. wp_install_theme("my-site", "/path/to/theme", true)
-2. Make changes to theme files (automatically reflected via Docker volumes)
-3. wp_git_commit("my-site", "Updated theme styles")
+### Database Migration Workflow
+```javascript
+// Before changes
+wp_db_dump("my-blog", "Before adding custom post types")
+
+// Make changes in WordPress admin...
+
+// After changes
+wp_db_dump("my-blog", "Added events custom post type")
+wp_git_commit("my-blog", "Add events functionality")
 ```
 
-### 3. Database Migration Workflow
-```
-1. Make database changes in WordPress admin
-2. wp_db_dump("my-site", "added_custom_post_types")
-3. Changes are tracked in migrations/
-4. wp_git_commit("my-site", "Database migration: added custom post types")
-```
+### Testing Workflow
+```javascript
+// Run individual tests
+wp_test_all_links("my-blog")  // Check for 404s
+wp_test_seo("my-blog")        // Validate SEO
 
-### 4. Prepare for Deployment
-```
-1. wp_prepare_deployment("my-site")
-2. Review checklist
-3. Push to Git repository
-4. On SiteGround: pull from Git and import database
-```
-
-### 5. Research and Content Generation
-```
-1. wp_research_topic("my-site", "best coffee shops in Seattle")
-2. wp_find_images("my-site", "coffee shop", 10)
-3. wp_generate_seo_pages("my-site", {
-     locations: ["Seattle", "Portland"],
-     categories: ["Coffee Shops", "Cafes"]
-   })
+// Or run everything
+wp_test_comprehensive("my-blog")
+wp_test_report("my-blog")      // Get readable report
 ```
 
 ## Project Structure
 
-Each WordPress project follows this structure:
 ```
 /home/thornlcsw/wp-projects/project-name/
-├── wp-admin/              # WordPress core
-├── wp-includes/           # WordPress core
-├── wp-content/            # Themes, plugins, uploads
-├── wp-config.php          # Main config (production-ready)
-├── wp-config-local.php    # Local development config
-├── migrations/            # Database migrations
+├── docker-compose.yml        # Docker configuration
+├── Dockerfile               # WordPress container
+├── .env                     # Environment variables
+├── wp-content/              # Themes, plugins, uploads
+├── wp-config.php           # Production config
+├── wp-config-local.php     # Local dev config
+├── migrations/             # Database migrations
 │   ├── 001_initial.sql
 │   └── migration_log.json
-├── research/              # Research data (Jina AI)
+├── test-results/           # Test reports
+│   ├── link-test-*.json
+│   ├── seo-validation-*.json
+│   └── test-report-*.md
+├── research/               # AI research data
 ├── scraped/               # Scraped content
-├── generated-content/     # Generated HTML content
-├── docker-compose.yml     # Docker configuration
-├── Dockerfile            # WordPress container definition
-├── .git/                 # Git repository
-└── .gitignore           # Git ignore rules
+├── generated-content/     # Generated HTML
+└── .git/                  # Git repository
 ```
 
-## Database Management
+## Testing Features
 
-### Migration Files
-- Automatically numbered (001, 002, etc.)
-- Include timestamps and descriptions
-- Tracked in `migration_log.json`
-- Committed to Git for deployment
+### Zero 404 Policy
+The testing framework enforces zero tolerance for broken links:
+- Validates all internal and external links
+- Checks navigation menus
+- Tests category and tag pages
+- Identifies broken image references
 
-### Environment Detection
-The `wp-config.php` file automatically detects environment:
-- Local: Uses `wp-config-local.php` if present
-- Production: Uses environment variables
+### SEO Validation
+Comprehensive SEO checks include:
+- Meta title length (30-60 characters)
+- Meta descriptions presence
+- Single H1 per page enforcement
+- Image alt text validation
+- Open Graph tags
+- Schema.org markup
 
-## Security Notes
+### Test Reports
+Test results are saved in multiple formats:
+- JSON for programmatic access
+- Markdown for human readability
+- Comprehensive logs with timestamps
 
-- Never commit credentials to Git
-- Use `.env` files for API keys
+## AI-Powered Features
+
+### Jina AI Integration
+When JINA_API_KEY is configured:
+- Exhaustive topic research
+- Competitor analysis
+- Market trend research
+- Content idea generation
+
+### Unsplash Integration
+When UNSPLASH_API_KEY is configured:
+- High-quality image search
+- Automatic download and organization
+- Attribution tracking
+- Multiple image formats
+
+## Security Considerations
+
+- Never commit `.env` files with API keys
 - Database passwords are environment-specific
-- Production credentials should be set on SiteGround
+- SSH keys must be properly configured for SiteGround
+- Production credentials should be set on the server
+- Use Git ignore for sensitive files
 
 ## Troubleshooting
 
-### Port Already in Use
-If a port is already in use, choose a different port when creating the project.
+### Common Issues
 
-### Docker Containers Not Starting
-1. Check Docker is running: `docker ps`
-2. Check logs: `wp_logs("project-name")`
-3. Verify port availability
-
-### Database Connection Issues
-1. Wait for MySQL to fully start (takes 10-30 seconds)
-2. Check credentials in wp-config-local.php
-3. Verify container name matches project
-
-### Git Remote Issues
-1. Ensure SSH keys are configured for Git
-2. Verify remote URL is correct
-3. Check repository permissions
-
-## Development Notes
-
-### Adding New Tools
-1. Define tool in `index.js` ListToolsRequestSchema
-2. Implement handler in appropriate manager
-3. Update this README
-
-### Debugging
-- Logs are available via `wp_logs` tool
-- MCP server logs to stderr
-- Docker logs: `docker-compose logs -f`
-
-## SiteGround Integration
-
-### Overview
-This MCP server now includes full integration with SiteGround's native Git functionality, allowing seamless deployment from local Docker development to SiteGround hosting.
-
-### Setting Up SiteGround Integration
-
-#### 1. Create WordPress Installation on SiteGround
-- Log into SiteGround Site Tools
-- Create a new WordPress installation
-- Enable Git for the installation (creates a Git repository)
-- Note the SSH credentials provided (example: `ssh://u1836-xxxxx@gvam1275.siteground.biz:18765/home/customer/www/domain.com/public_html/`)
-
-#### 2. SSH Key Setup
-**Important**: You need to set up SSH keys for passwordless authentication:
-
-1. Generate an SSH key pair if you don't have one:
+**Port Already in Use**
 ```bash
-ssh-keygen -t rsa -b 4096 -C "your-email@example.com"
+# Find process using port
+lsof -i :8081
+# Or use a different port when creating project
 ```
 
-2. Add your public key to SiteGround:
-   - Go to Site Tools → SSH Keys Manager
-   - Click "Import" to add an existing key, or "Generate" to create a new one
-   - If importing, paste your public key (`~/.ssh/id_rsa.pub`)
-   - Authorize the key for your account
-
-3. Test the connection:
-```bash
-ssh -p 18765 u1836-xxxxx@gvam1275.siteground.biz
-```
-
-#### 3. Connect Your Project
+**Docker Containers Not Starting**
 ```javascript
-wp_siteground_connect(
-  "my-project",
-  "gvam1275.siteground.biz",
-  "u1836-xxxxx",
-  "home/customer/www/domain.com/public_html",
-  "https://domain.com"
-)
+wp_logs("project-name", "wordpress", 50)
 ```
 
-### SiteGround-Specific Tools
-
-#### `wp_siteground_connect`
-Connect a local WordPress project to SiteGround Git repository.
-- **Parameters:**
-  - `project`: Local project name
-  - `sshHost`: SiteGround server (e.g., gvam1275.siteground.biz)
-  - `sshUser`: SSH username (e.g., u1836-xxxxx)
-  - `repoPath`: Repository path (e.g., home/customer/www/domain.com/public_html)
-  - `siteUrl`: Optional live site URL
-
-#### `wp_siteground_deploy`
-Deploy your project to SiteGround with a single command.
-- **Parameters:**
-  - `project`: Project name to deploy
-  - `branch`: Branch to deploy (default: master)
-  - `clearCache`: Clear SiteGround cache after deployment (default: true)
-  - `skipDatabaseDump`: Skip database backup (default: false)
-  - `message`: Optional commit message
-
-#### `wp_siteground_sync`
-Pull changes from SiteGround (useful for syncing live changes).
-- **Parameters:**
-  - `project`: Project name
-  - `branch`: Branch to sync (default: master)
-
-#### `wp_siteground_cache_clear`
-Clear SiteGround's cache via SSH.
-- **Parameters:**
-  - `project`: Project name
-
-#### `wp_siteground_info`
-Get deployment information for a project.
-- **Parameters:**
-  - `project`: Project name
-
-### Deployment Workflow
-
-#### Complete Setup Example
+**Testing Failures**
 ```javascript
-// 1. Create a new WordPress project
-wp_create_project("tylerhorn", 8085)
-
-// 2. Connect to SiteGround
-wp_siteground_connect(
-  "tylerhorn",
-  "gvam1275.siteground.biz",
-  "u1836-0gj8kch3wtnk",
-  "home/customer/www/tylerhorn.com/public_html",
-  "https://tylerhorn.com"
-)
-
-// 3. Develop your site locally
-// (Make theme changes, install plugins, etc.)
-
-// 4. Deploy to SiteGround
-wp_siteground_deploy("tylerhorn", {
-  message: "Initial deployment",
-  clearCache: true
-})
+// Get detailed test report
+wp_test_report("project-name")
+// Check specific issues
+wp_test_all_links("project-name")
 ```
 
-#### Continuous Deployment
-```javascript
-// Make local changes
-wp_git_commit("tylerhorn", "Updated homepage design")
+**Database Connection Issues**
+- Wait 10-30 seconds for MySQL to start
+- Check credentials in wp-config-local.php
+- Verify container names match project
 
-// Deploy to production
-wp_siteground_deploy("tylerhorn")
+## Version History
 
-// Or sync from production
-wp_siteground_sync("tylerhorn")
-```
+### v1.1.0 (Current)
+- Added comprehensive testing framework
+- Enhanced research with validation
+- Playwright integration for testing
+- Zero 404 policy enforcement
+- Improved workflow documentation
 
-### SiteGround .gitignore
-The system automatically creates a SiteGround-optimized `.gitignore` that excludes:
-- WordPress core files (managed by SiteGround)
-- Upload directories
-- Cache directories
-- Database dumps
-- Environment-specific configurations
-
-Default excludes from SiteGround:
-```
-wp-content/upgrade/*
-wp-content/backup-db/*
-wp-content/cache/*
-wp-content/cache/supercache/*
-wp-content/w3tc-cache/*
-```
-
-### Database Management with SiteGround
-
-When deploying database changes:
-
-1. **Before deployment**: Database is automatically dumped
-2. **After deployment**: SSH into SiteGround and import:
-```bash
-ssh -p 18765 u1836-xxxxx@server.siteground.biz
-cd ~/public_html
-wp db import migrations/latest.sql
-```
-
-### Troubleshooting SiteGround Integration
-
-#### SSH Connection Issues
-- Ensure your SSH key is added to SiteGround's SSH Keys Manager
-- Verify the key is authorized for your account
-- Check that port 18765 is not blocked by your firewall
-
-#### Git Push Failures
-- Verify your local changes are committed
-- Check that the SiteGround repository exists
-- Ensure you have write permissions to the repository
-
-#### Cache Not Clearing
-- The WP-CLI command `wp sg purge` requires SiteGround Optimizer plugin
-- Manual cache clearing can be done through Site Tools
-
-## Comparison with Original wp-cc
-
-This MCP implementation **simplifies** the original wp-cc by:
-- ✅ Removing SSH/SCP dependencies (except for SiteGround Git)
-- ✅ Removing Digital Ocean API complexity
-- ✅ Using Git for deployment (industry standard)
-- ✅ Adding proper database versioning
-- ✅ Supporting multiple projects
-- ✅ Direct integration with SiteGround's native Git
-- ✅ Automated cache management for SiteGround
+### v1.0.0
+- Initial MCP implementation
+- SiteGround Git integration
+- Docker-based development
+- Basic research tools
 
 ## License
 
@@ -513,4 +315,4 @@ MIT
 
 ## Support
 
-For issues or questions, check the logs or review the source code in `/home/thornlcsw/docker/wp-cc-mcp/`.
+For issues or feature requests, please open an issue on [GitHub](https://github.com/codeverlan/wp-cc-mcp).
