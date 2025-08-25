@@ -14,6 +14,7 @@ import { ProjectManager } from './lib/project-manager.js';
 import { GitManager } from './lib/git-manager.js';
 import { ResearchManager } from './lib/research-manager.js';
 import { SiteGroundManager } from './lib/siteground-manager.js';
+import { TestingManager } from './lib/testing-manager.js';
 
 class WordPressDevServer {
   constructor() {
@@ -25,6 +26,7 @@ class WordPressDevServer {
     this.gitManager = new GitManager();
     this.researchManager = new ResearchManager();
     this.sitegroundManager = new SiteGroundManager();
+    this.testingManager = new TestingManager();
 
     // Initialize MCP server
     this.server = new Server(
@@ -460,6 +462,42 @@ class WordPressDevServer {
           },
         },
         {
+          name: 'wp_research_exhaustive',
+          description: 'Perform exhaustive research with comprehensive data collection',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+              query: {
+                type: 'string',
+                description: 'Research query for comprehensive data collection',
+              },
+            },
+            required: ['project', 'query'],
+          },
+        },
+        {
+          name: 'wp_validate_research',
+          description: 'Validate research data for completeness and quality',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+              dataFile: {
+                type: 'string',
+                description: 'Path to data file to validate (relative to project)',
+              },
+            },
+            required: ['project', 'dataFile'],
+          },
+        },
+        {
           name: 'wp_generate_seo_pages',
           description: 'Generate SEO-optimized location/category pages',
           inputSchema: {
@@ -599,6 +637,64 @@ class WordPressDevServer {
             required: ['project'],
           },
         },
+        
+        // Testing Tools
+        {
+          name: 'wp_test_all_links',
+          description: 'Test all links on the WordPress site for 404 errors',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+            },
+            required: ['project'],
+          },
+        },
+        {
+          name: 'wp_test_seo',
+          description: 'Validate SEO implementation (meta tags, headings, schema)',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+            },
+            required: ['project'],
+          },
+        },
+        {
+          name: 'wp_test_comprehensive',
+          description: 'Run all tests (links, SEO, etc.) and generate report',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+            },
+            required: ['project'],
+          },
+        },
+        {
+          name: 'wp_test_report',
+          description: 'Generate test report from latest test results',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: {
+                type: 'string',
+                description: 'Project name',
+              },
+            },
+            required: ['project'],
+          },
+        },
       ],
     }));
 
@@ -679,6 +775,16 @@ class WordPressDevServer {
           case 'wp_siteground_info':
             return await this.sitegroundManager.getDeploymentInfo(args.project);
 
+          // Testing Tools
+          case 'wp_test_all_links':
+            return await this.testingManager.testAllLinks(args.project);
+          case 'wp_test_seo':
+            return await this.testingManager.validateSEO(args.project);
+          case 'wp_test_comprehensive':
+            return await this.testingManager.runComprehensiveTests(args.project);
+          case 'wp_test_report':
+            return await this.testingManager.generateTestReport(args.project);
+
           // Research Tools
           case 'wp_research_topic':
             return await this.researchManager.researchTopic(args.project, args.query);
@@ -690,6 +796,10 @@ class WordPressDevServer {
             return await this.researchManager.generateContent(args.project, args.template, args.data);
           case 'wp_import_json':
             return await this.researchManager.importJson(args.project, args.file);
+          case 'wp_research_exhaustive':
+            return await this.researchManager.researchExhaustive(args.project, args.query);
+          case 'wp_validate_research':
+            return await this.researchManager.validateResearchData(args.project, args.dataFile);
           case 'wp_generate_seo_pages':
             return await this.researchManager.generateSeoPages(args.project, args.config);
 
