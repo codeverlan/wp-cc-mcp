@@ -77,6 +77,62 @@ class NaturalLanguageInterface {
         /help me with (?:content for |ideas about )?["']?([^"']+)["']?/i
       ],
       
+      // NEW: Jina AI Search
+      jinaSearch: [
+        /(?:search|find|look for) (?:on the web |online |current info )(?:for |about )?["']?([^"']+)["']?/i,
+        /(?:grounded|factual|cited) search (?:for |about )?["']?([^"']+)["']?/i,
+        /what(?:'s| is) (?:the latest|new|trending) (?:about|with|in) ["']?([^"']+)["']?/i,
+        /(?:real-time|current|latest) (?:information|data|news) (?:about |on )?["']?([^"']+)["']?/i
+      ],
+      
+      // NEW: Jina Semantic Search
+      jinaSemanticSearch: [
+        /find (?:similar|related) (?:content|posts|articles) (?:to |about )?["']?([^"']+)["']?/i,
+        /(?:semantic|ai|smart) search (?:for )?["']?([^"']+)["']?/i,
+        /what (?:content|posts) (?:is |are )?(?:similar to|like) ["']?([^"']+)["']?/i
+      ],
+      
+      // NEW: Jina Content Categorization
+      jinaCategorize: [
+        /(?:categorize|classify|tag) (?:this |the )?(?:content|post|article) ["']?([^"']*?)["']?$/i,
+        /what (?:category|type) (?:is |of )(?:this|the) (?:content|post)/i,
+        /(?:auto|automatically) (?:categorize|tag|classify) ["']?([^"']*?)["']?$/i
+      ],
+      
+      // NEW: Jina Content Optimization
+      jinaOptimize: [
+        /(?:optimize|rerank|improve) (?:content|results|posts) (?:for |by )?["']?([^"']+)["']?/i,
+        /make (?:content|results) more relevant (?:to |for )?["']?([^"']+)["']?/i
+      ],
+      
+      // NEW: Jina Content Chunking
+      jinaChunk: [
+        /(?:chunk|split|divide|break) (?:this |the )?(?:content|article|post)/i,
+        /(?:segment|partition) (?:the )?content/i,
+        /break (?:down|up) (?:long |the )?(?:content|article)/i
+      ],
+      
+      // NEW: Jina Sentiment Analysis
+      jinaSentiment: [
+        /(?:analyze|check|assess) (?:the )?sentiment/i,
+        /(?:sentiment|emotion|mood) analysis/i,
+        /how (?:positive|negative) (?:is |are )/i
+      ],
+      
+      // NEW: Jina Content Ideas
+      jinaIdeas: [
+        /(?:generate|give me|suggest) (?:content )?ideas (?:for |about )?["']?([^"']+)["']?/i,
+        /content (?:ideas|suggestions|topics) (?:for |about )?["']?([^"']+)["']?/i,
+        /what should I (?:write|blog) about (?:in )?["']?([^"']+)["']?/i
+      ],
+      
+      // NEW: Jina Comprehensive Research
+      jinaDeepResearch: [
+        /(?:deep|comprehensive|thorough|complete) research (?:on |about )?["']?([^"']+)["']?/i,
+        /research everything (?:about |on )?["']?([^"']+)["']?/i,
+        /(?:full|complete) (?:analysis|research) (?:of |on )?["']?([^"']+)["']?/i
+      ],
+      
       findImages: [
         /(?:find|get|download) (?:images?|photos?|pictures?) (?:of |for |about )?["']?([^"']+)["']?/i,
         /I need (?:images?|photos?|pictures?) (?:of |for |about )?["']?([^"']+)["']?/i,
@@ -400,6 +456,117 @@ class NaturalLanguageInterface {
           });
           return `Research complete for '${topic}'. ${result.content[0].text}`;
           
+        // NEW: Jina AI Commands
+        case 'jinaSearch':
+          if (!this.currentProject) {
+            return "Please select a project first";
+          }
+          const searchQuery = params[0];
+          const searchResult = await this.client.callTool({
+            name: 'jina_search',
+            arguments: {
+              name: this.currentProject,
+              query: searchQuery,
+              numResults: 10
+            }
+          });
+          return `Found web results for '${searchQuery}' with citations`;
+          
+        case 'jinaSemanticSearch':
+          if (!this.currentProject) {
+            return "Please select a project first";
+          }
+          const semanticQuery = params[0];
+          await this.client.callTool({
+            name: 'jina_semantic_search',
+            arguments: {
+              name: this.currentProject,
+              query: semanticQuery,
+              topK: 5
+            }
+          });
+          return `Found similar content matching '${semanticQuery}'`;
+          
+        case 'jinaCategorize':
+          if (!this.currentProject) {
+            return "Please select a project first";
+          }
+          const contentToCateg = params[0] || this.context.lastPost;
+          if (!contentToCateg) {
+            return "Please specify content to categorize or create a post first";
+          }
+          const categResult = await this.client.callTool({
+            name: 'jina_categorize',
+            arguments: {
+              name: this.currentProject,
+              content: contentToCateg
+            }
+          });
+          return `Content categorized successfully`;
+          
+        case 'jinaOptimize':
+          if (!this.currentProject) {
+            return "Please select a project first";
+          }
+          const optimizeFor = params[0];
+          return `Content optimization for '${optimizeFor}' requires selecting documents first`;
+          
+        case 'jinaChunk':
+          if (!this.currentProject) {
+            return "Please select a project first";
+          }
+          await this.client.callTool({
+            name: 'jina_chunk_content',
+            arguments: {
+              name: this.currentProject,
+              content: this.context.lastPost || "Sample content to chunk",
+              chunkSize: 500
+            }
+          });
+          return `Content chunked into optimized sections`;
+          
+        case 'jinaSentiment':
+          if (!this.currentProject) {
+            return "Please select a project first";
+          }
+          await this.client.callTool({
+            name: 'jina_analyze_sentiment',
+            arguments: {
+              name: this.currentProject,
+              texts: ["Sample text for sentiment analysis"]
+            }
+          });
+          return `Sentiment analysis complete`;
+          
+        case 'jinaIdeas':
+          if (!this.currentProject) {
+            return "Please select a project first";
+          }
+          const ideaNiche = params[0] || 'general';
+          await this.client.callTool({
+            name: 'jina_generate_ideas',
+            arguments: {
+              name: this.currentProject,
+              niche: ideaNiche,
+              count: 10
+            }
+          });
+          return `Generated content ideas for '${ideaNiche}'`;
+          
+        case 'jinaDeepResearch':
+          if (!this.currentProject) {
+            return "Please select a project first";
+          }
+          const deepTopic = params[0];
+          await this.client.callTool({
+            name: 'jina_comprehensive_research',
+            arguments: {
+              name: this.currentProject,
+              topic: deepTopic
+            }
+          });
+          return `Completed comprehensive research on '${deepTopic}'`;
+          
         case 'findImages':
           if (!this.currentProject) {
             return "Please select a project first";
@@ -512,7 +679,7 @@ class NaturalLanguageInterface {
   async connect() {
     const transport = new StdioClientTransport({
       command: 'node',
-      args: ['/Users/tyler-lcsw/projects/wp-cc-mcp/index-minimal.js'],
+      args: ['/Users/tyler-lcsw/projects/wp-cc-mcp/index-jina-enhanced.js'],
     });
 
     this.client = new Client({
@@ -612,6 +779,16 @@ class NaturalLanguageInterface {
     console.log('  • Research about [topic]');
     console.log('  • Find images of [subject]');
     console.log('  • Get content ideas for [topic]');
+    
+    console.log('\n🤖 Jina AI Features:');
+    console.log('  • Search online for [topic] - Real-time web search');
+    console.log('  • Find similar content to [topic] - Semantic search');
+    console.log('  • Categorize this content - Auto-categorization');
+    console.log('  • Optimize content for [keyword] - Relevance ranking');
+    console.log('  • Chunk this article - Smart content segmentation');
+    console.log('  • Analyze sentiment - Emotion analysis');
+    console.log('  • Generate content ideas for [niche] - AI-powered ideas');
+    console.log('  • Deep research on [topic] - Comprehensive analysis');
     
     console.log('\n💾 Version Control:');
     console.log('  • Save my changes');

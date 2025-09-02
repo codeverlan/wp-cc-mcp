@@ -14,7 +14,16 @@
         "wp_install_plugin",
         "wp_research_topic",
         "wp_generate_content",
-        "wp_find_images"
+        "wp_find_images",
+        "jina_search",
+        "jina_semantic_search",
+        "jina_categorize",
+        "jina_optimize_content",
+        "jina_chunk_content",
+        "jina_analyze_sentiment",
+        "jina_generate_ideas",
+        "jina_comprehensive_research",
+        "jina_multimodal_search"
       ],
       "inactive_tools": [
         "wp_test_all_links",
