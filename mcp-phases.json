@@ -1,0 +1,73 @@
+{
+  "phases": {
+    "design": {
+      "description": "Website design and content creation phase",
+      "active_tools": [
+        "wp_create_project",
+        "wp_list_projects",
+        "wp_start",
+        "wp_stop",
+        "wp_create_page",
+        "wp_create_post",
+        "wp_create_menu",
+        "wp_install_theme",
+        "wp_install_plugin",
+        "wp_research_topic",
+        "wp_generate_content",
+        "wp_find_images"
+      ],
+      "inactive_tools": [
+        "wp_test_all_links",
+        "wp_test_seo",
+        "wp_test_comprehensive",
+        "wp_siteground_connect",
+        "wp_siteground_deploy",
+        "wp_siteground_sync",
+        "wp_prepare_deployment",
+        "wp_db_dump",
+        "wp_db_import"
+      ]
+    },
+    "development": {
+      "description": "Custom development and functionality phase",
+      "active_tools": [
+        "wp_create_page",
+        "wp_create_post",
+        "wp_install_plugin",
+        "wp_configure",
+        "wp_git_status",
+        "wp_git_commit",
+        "wp_db_dump"
+      ]
+    },
+    "testing": {
+      "description": "Quality assurance and testing phase",
+      "active_tools": [
+        "wp_test_all_links",
+        "wp_test_seo",
+        "wp_test_comprehensive",
+        "wp_test_report",
+        "wp_validate_research"
+      ]
+    },
+    "deployment": {
+      "description": "Production deployment phase",
+      "active_tools": [
+        "wp_prepare_deployment",
+        "wp_siteground_connect",
+        "wp_siteground_deploy",
+        "wp_siteground_sync",
+        "wp_siteground_cache_clear",
+        "wp_git_commit",
+        "wp_db_dump",
+        "wp_db_diff"
+      ]
+    }
+  },
+  "current_phase": "design",
+  "workflow": {
+    "order": ["design", "development", "testing", "deployment"],
+    "allow_phase_switching": true,
+    "auto_activate_tools": true
+  }
+}
