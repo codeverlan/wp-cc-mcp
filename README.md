@@ -69,6 +69,39 @@ Edit `~/.claude/settings.local.json`:
 }
 ```
 
+## Natural Language Research
+
+The `wp_research_topic` tool now supports natural language queries that automatically:
+- Detect whether you want to search for information or analyze a specific URL
+- Extract URLs from your query if present
+- Categorize content into appropriate subfolders (seo-ai-optimization, behavioral-challenges, etc.)
+- Save results as markdown with metadata
+
+### Examples:
+```javascript
+// Search queries
+wp_research_topic("my-site", "search for parenting SEO optimization strategies")
+wp_research_topic("my-site", "find the best practices for AI content")
+wp_research_topic("my-site", "what are effective sleep training methods")
+
+// URL analysis
+wp_research_topic("my-site", "analyze https://example.com/article")
+wp_research_topic("my-site", "extract information from https://blog.com/post")
+
+// Mixed natural language
+wp_research_topic("my-site", "research toddler tantrums and behavioral issues")
+wp_research_topic("my-site", "how do parents search for child development information online")
+```
+
+### Auto-categorization:
+- **seo-ai-optimization**: SEO, search engines, AI optimization, ranking
+- **behavioral-challenges**: behavior, tantrums, discipline, parenting
+- **sleep-issues**: sleep, bedtime, naps, nighttime
+- **eating-challenges**: eating, food, meals, nutrition
+- **school-education**: school, homework, learning, studying
+- **technical**: WordPress, plugins, technical implementation
+- **general**: Everything else
+
 ## Complete Tool Reference
 
 ### 📁 Project Management Tools
@@ -129,7 +162,7 @@ Edit `~/.claude/settings.local.json`:
 
 | Tool | Description | Parameters | Requirements |
 |------|-------------|------------|--------------|
-| `wp_research_topic` | Basic topic research using Jina AI | `project`, `query` | JINA_API_KEY |
+| `wp_research_topic` | Natural language research - auto-detects search/URL analysis, categorizes results | `project`, `query` | JINA_API_KEY |
 | `wp_research_exhaustive` | Comprehensive multi-query research | `project`, `query` | JINA_API_KEY |
 | `wp_validate_research` | Validate research data completeness | `project`, `dataFile` | none |
 | `wp_scrape_site` | Scrape content from a website | `project`, `url` | none |
@@ -194,7 +227,14 @@ Generated HTML files are saved to: `generated-content/{template}_{timestamp}.htm
 // 1. Create project
 wp_create_project("my-blog", 8082)
 
-// 2. Research content (if using AI features)
+// 2. Research content with natural language (if using AI features)
+// Natural language research - auto-detects intent
+wp_research_topic("my-blog", "search for sustainable living tips")
+wp_research_topic("my-blog", "analyze https://example.com/green-living")
+wp_research_topic("my-blog", "find parenting advice for toddlers")
+wp_research_topic("my-blog", "what are the best SEO practices for blogs")
+
+// Or use exhaustive research for comprehensive data
 wp_research_exhaustive("my-blog", "sustainable living tips")
 wp_validate_research("my-blog", "research/data.json")
 wp_find_images("my-blog", "sustainable living", 20)

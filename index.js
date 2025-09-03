@@ -367,7 +367,7 @@ class WordPressDevServer {
         // Research Tools (Phase 2)
         {
           name: 'wp_research_topic',
-          description: 'Research a topic using Jina AI',
+          description: 'Research using natural language - searches, analyzes URLs, auto-categorizes. Examples: "search for parenting SEO tips", "analyze https://example.com", "find sleep training methods"',
           inputSchema: {
             type: 'object',
             properties: {
@@ -377,7 +377,7 @@ class WordPressDevServer {
               },
               query: {
                 type: 'string',
-                description: 'Research query',
+                description: 'Natural language query - can be a search, URL to analyze, or topic. Auto-detects intent and categorizes results.',
               },
             },
             required: ['project', 'query'],
