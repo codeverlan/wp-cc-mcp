@@ -18,6 +18,8 @@ import { GitManager } from './lib/git-manager.js';
 import { ResearchManager } from './lib/research-manager.js';
 import { SiteGroundManager } from './lib/siteground-manager.js';
 import { TestingManager } from './lib/testing-manager.js';
+import { WPCLIManager } from './lib/wpcli-manager.js';
+import { WPRestManager } from './lib/wprest-manager.js';
 
 class WordPressDevServer {
   constructor() {
@@ -30,6 +32,8 @@ class WordPressDevServer {
     this.researchManager = new ResearchManager();
     this.sitegroundManager = new SiteGroundManager();
     this.testingManager = new TestingManager();
+    this.wpcliManager = new WPCLIManager();
+    this.wprestManager = new WPRestManager();
 
     // Initialize MCP server
     this.server = new Server(
@@ -698,6 +702,284 @@ class WordPressDevServer {
             required: ['project'],
           },
         },
+
+        // ========== WP-CLI Content Management Tools ==========
+        {
+          name: 'wp_cli_create_post',
+          description: 'Create a WordPress post using WP-CLI',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              title: { type: 'string', description: 'Post title' },
+              content: { type: 'string', description: 'Post content' },
+              status: { type: 'string', description: 'Post status (draft, publish)', default: 'draft' },
+              category: { type: 'string', description: 'Category name or ID' },
+              tags: { type: 'string', description: 'Comma-separated tags' },
+              meta: { type: 'object', description: 'Custom meta fields' },
+            },
+            required: ['project', 'title'],
+          },
+        },
+        {
+          name: 'wp_cli_bulk_import_csv',
+          description: 'Bulk import posts from CSV file with article data',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              csvPath: { type: 'string', description: 'Path to CSV file' },
+            },
+            required: ['project', 'csvPath'],
+          },
+        },
+        {
+          name: 'wp_cli_manage_posts',
+          description: 'List, update, or delete posts',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              action: { type: 'string', description: 'Action: list, update, delete' },
+              postId: { type: 'number', description: 'Post ID (for update/delete)' },
+              data: { type: 'object', description: 'Update data' },
+            },
+            required: ['project', 'action'],
+          },
+        },
+        {
+          name: 'wp_cli_manage_users',
+          description: 'Create, update, delete, or list WordPress users',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              action: { type: 'string', description: 'Action: create, update, delete, list' },
+              username: { type: 'string', description: 'Username (for create)' },
+              email: { type: 'string', description: 'Email (for create)' },
+              userId: { type: 'number', description: 'User ID (for update/delete)' },
+              role: { type: 'string', description: 'User role' },
+            },
+            required: ['project', 'action'],
+          },
+        },
+        {
+          name: 'wp_cli_manage_plugins',
+          description: 'Install, activate, deactivate, or delete plugins',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              action: { type: 'string', description: 'Action: install, activate, deactivate, delete, list' },
+              plugin: { type: 'string', description: 'Plugin slug or path' },
+              activate: { type: 'boolean', description: 'Activate after install', default: true },
+            },
+            required: ['project', 'action'],
+          },
+        },
+        {
+          name: 'wp_cli_manage_themes',
+          description: 'Install, activate, or delete themes',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              action: { type: 'string', description: 'Action: install, activate, delete, list' },
+              theme: { type: 'string', description: 'Theme slug or path' },
+            },
+            required: ['project', 'action'],
+          },
+        },
+        {
+          name: 'wp_cli_manage_media',
+          description: 'Import media files or regenerate thumbnails',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              action: { type: 'string', description: 'Action: import, regenerate' },
+              filePath: { type: 'string', description: 'Path to media file (for import)' },
+              postId: { type: 'number', description: 'Attach to post ID' },
+            },
+            required: ['project', 'action'],
+          },
+        },
+        {
+          name: 'wp_cli_manage_terms',
+          description: 'Create, update, or delete categories and tags',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              action: { type: 'string', description: 'Action: create, update, delete, list' },
+              taxonomy: { type: 'string', description: 'Taxonomy: category, post_tag, etc.' },
+              term: { type: 'string', description: 'Term name' },
+              termId: { type: 'number', description: 'Term ID (for update/delete)' },
+            },
+            required: ['project', 'action', 'taxonomy'],
+          },
+        },
+        {
+          name: 'wp_cli_search_replace',
+          description: 'Search and replace in database',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              search: { type: 'string', description: 'Search string' },
+              replace: { type: 'string', description: 'Replace string' },
+              dryRun: { type: 'boolean', description: 'Dry run only', default: true },
+            },
+            required: ['project', 'search', 'replace'],
+          },
+        },
+        {
+          name: 'wp_cli_manage_options',
+          description: 'Get or set WordPress options',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              action: { type: 'string', description: 'Action: get, update, delete' },
+              option: { type: 'string', description: 'Option name' },
+              value: { type: 'string', description: 'Option value (for update)' },
+            },
+            required: ['project', 'action', 'option'],
+          },
+        },
+        {
+          name: 'wp_cli_cache_flush',
+          description: 'Flush various caches',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              type: { type: 'string', description: 'Cache type: all, object, rewrite, transient' },
+            },
+            required: ['project'],
+          },
+        },
+        {
+          name: 'wp_cli_maintenance_mode',
+          description: 'Enable or disable maintenance mode',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              enable: { type: 'boolean', description: 'Enable maintenance mode' },
+            },
+            required: ['project', 'enable'],
+          },
+        },
+        {
+          name: 'wp_cli_run_cron',
+          description: 'Run WordPress cron events',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              hook: { type: 'string', description: 'Specific hook to run (optional)' },
+            },
+            required: ['project'],
+          },
+        },
+        {
+          name: 'wp_cli_custom',
+          description: 'Run custom WP-CLI command',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              command: { type: 'string', description: 'WP-CLI command' },
+              args: { type: 'array', description: 'Command arguments', items: { type: 'string' } },
+            },
+            required: ['project', 'command'],
+          },
+        },
+
+        // ========== WordPress REST API Tools ==========
+        {
+          name: 'wp_rest_create_content',
+          description: 'Create posts or pages via REST API',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              type: { type: 'string', description: 'Content type: post or page' },
+              title: { type: 'string', description: 'Title' },
+              content: { type: 'string', description: 'Content' },
+              status: { type: 'string', description: 'Status: draft, publish' },
+              meta: { type: 'object', description: 'Meta fields' },
+            },
+            required: ['project', 'type', 'title'],
+          },
+        },
+        {
+          name: 'wp_rest_upload_media',
+          description: 'Upload media files via REST API',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              filePath: { type: 'string', description: 'Path to file' },
+              title: { type: 'string', description: 'Media title' },
+              altText: { type: 'string', description: 'Alt text' },
+            },
+            required: ['project', 'filePath'],
+          },
+        },
+        {
+          name: 'wp_rest_manage_taxonomies',
+          description: 'Manage categories and tags via REST API',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              type: { type: 'string', description: 'Type: category or tag' },
+              action: { type: 'string', description: 'Action: create, update, delete, list' },
+              name: { type: 'string', description: 'Term name' },
+              id: { type: 'number', description: 'Term ID (for update/delete)' },
+            },
+            required: ['project', 'type', 'action'],
+          },
+        },
+        {
+          name: 'wp_rest_search',
+          description: 'Search WordPress content via REST API',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              query: { type: 'string', description: 'Search query' },
+              type: { type: 'string', description: 'Content type to search' },
+            },
+            required: ['project', 'query'],
+          },
+        },
+        {
+          name: 'wp_rest_set_credentials',
+          description: 'Set REST API credentials for a project',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+              username: { type: 'string', description: 'WordPress username' },
+              password: { type: 'string', description: 'WordPress password' },
+            },
+            required: ['project', 'username', 'password'],
+          },
+        },
+        {
+          name: 'wp_rest_health_check',
+          description: 'Check if WordPress REST API is accessible',
+          inputSchema: {
+            type: 'object',
+            properties: {
+              project: { type: 'string', description: 'Project name' },
+            },
+            required: ['project'],
+          },
+        },
       ],
     }));
 
@@ -805,6 +1087,139 @@ class WordPressDevServer {
             return await this.researchManager.validateResearchData(args.project, args.dataFile);
           case 'wp_generate_seo_pages':
             return await this.researchManager.generateSeoPages(args.project, args.config);
+
+          // WP-CLI Tools
+          case 'wp_cli_create_post':
+            return await this.wpcliManager.createPost(args.project, args);
+          case 'wp_cli_bulk_import_csv':
+            return await this.wpcliManager.bulkImportCSV(args.project, args.csvPath);
+          case 'wp_cli_manage_posts':
+            switch(args.action) {
+              case 'list':
+                return await this.wpcliManager.listPosts(args.project, args);
+              case 'update':
+                return await this.wpcliManager.updatePost(args.project, args.postId, args.data);
+              case 'delete':
+                return await this.wpcliManager.deletePost(args.project, args.postId, args.force);
+            }
+          case 'wp_cli_manage_users':
+            switch(args.action) {
+              case 'create':
+                return await this.wpcliManager.createUser(args.project, args.username, args.email, args);
+              case 'update':
+                return await this.wpcliManager.updateUser(args.project, args.userId, args);
+              case 'delete':
+                return await this.wpcliManager.deleteUser(args.project, args.userId, args.reassign);
+              case 'list':
+                return await this.wpcliManager.listUsers(args.project, args.role);
+            }
+          case 'wp_cli_manage_plugins':
+            switch(args.action) {
+              case 'install':
+                return await this.wpcliManager.installPlugin(args.project, args.plugin, args.activate);
+              case 'activate':
+                return await this.wpcliManager.activatePlugin(args.project, args.plugin);
+              case 'deactivate':
+                return await this.wpcliManager.deactivatePlugin(args.project, args.plugin);
+              case 'delete':
+                return await this.wpcliManager.deletePlugin(args.project, args.plugin);
+              case 'list':
+                return await this.wpcliManager.listPlugins(args.project, args.status);
+            }
+          case 'wp_cli_manage_themes':
+            switch(args.action) {
+              case 'install':
+                return await this.wpcliManager.installTheme(args.project, args.theme);
+              case 'activate':
+                return await this.wpcliManager.activateTheme(args.project, args.theme);
+              case 'delete':
+                return await this.wpcliManager.deleteTheme(args.project, args.theme);
+              case 'list':
+                return await this.wpcliManager.listThemes(args.project);
+            }
+          case 'wp_cli_manage_media':
+            switch(args.action) {
+              case 'import':
+                return await this.wpcliManager.importMedia(args.project, args.filePath, args);
+              case 'regenerate':
+                return await this.wpcliManager.regenerateMedia(args.project, args);
+            }
+          case 'wp_cli_manage_terms':
+            switch(args.action) {
+              case 'create':
+                return await this.wpcliManager.createTerm(args.project, args.taxonomy, args.term, args);
+              case 'update':
+                return await this.wpcliManager.updateTerm(args.project, args.taxonomy, args.termId, args);
+              case 'delete':
+                return await this.wpcliManager.deleteTerm(args.project, args.taxonomy, args.termId);
+              case 'list':
+                return await this.wpcliManager.listTerms(args.project, args.taxonomy);
+            }
+          case 'wp_cli_search_replace':
+            return await this.wpcliManager.searchReplace(args.project, args.search, args.replace, args);
+          case 'wp_cli_manage_options':
+            switch(args.action) {
+              case 'get':
+                return await this.wpcliManager.getOption(args.project, args.option);
+              case 'update':
+                return await this.wpcliManager.updateOption(args.project, args.option, args.value);
+              case 'delete':
+                return await this.wpcliManager.deleteOption(args.project, args.option);
+            }
+          case 'wp_cli_cache_flush':
+            if (args.type === 'transient') {
+              return await this.wpcliManager.clearTransients(args.project, { all: true });
+            } else if (args.type === 'rewrite') {
+              return await this.wpcliManager.flushRewrite(args.project);
+            } else {
+              return await this.wpcliManager.flushCache(args.project);
+            }
+          case 'wp_cli_maintenance_mode':
+            return args.enable ? 
+              await this.wpcliManager.enableMaintenance(args.project) : 
+              await this.wpcliManager.disableMaintenance(args.project);
+          case 'wp_cli_run_cron':
+            return await this.wpcliManager.runCron(args.project, args.hook);
+          case 'wp_cli_custom':
+            return await this.wpcliManager.runCustomCommand(args.project, args.command, args.args);
+
+          // REST API Tools  
+          case 'wp_rest_create_content':
+            return args.type === 'post' ?
+              await this.wprestManager.createPost(args.project, args) :
+              await this.wprestManager.createPage(args.project, args);
+          case 'wp_rest_upload_media':
+            return await this.wprestManager.uploadMedia(args.project, args.filePath, {
+              title: args.title,
+              alt_text: args.altText
+            });
+          case 'wp_rest_manage_taxonomies':
+            const taxType = args.type === 'category' ? 'categories' : 'tags';
+            switch(args.action) {
+              case 'create':
+                return args.type === 'category' ?
+                  await this.wprestManager.createCategory(args.project, { name: args.name }) :
+                  await this.wprestManager.createTag(args.project, { name: args.name });
+              case 'update':
+                return args.type === 'category' ?
+                  await this.wprestManager.updateCategory(args.project, args.id, { name: args.name }) :
+                  await this.wprestManager.updateTag(args.project, args.id, { name: args.name });
+              case 'delete':
+                return args.type === 'category' ?
+                  await this.wprestManager.deleteCategory(args.project, args.id) :
+                  await this.wprestManager.deleteTag(args.project, args.id);
+              case 'list':
+                return args.type === 'category' ?
+                  await this.wprestManager.listCategories(args.project) :
+                  await this.wprestManager.listTags(args.project);
+            }
+          case 'wp_rest_search':
+            return await this.wprestManager.search(args.project, args.query, { type: args.type });
+          case 'wp_rest_set_credentials':
+            this.wprestManager.setCredentials(args.project, args.username, args.password);
+            return { success: true, message: 'Credentials set successfully' };
+          case 'wp_rest_health_check':
+            return await this.wprestManager.healthCheck(args.project);
 
           default:
             throw new Error(`Unknown tool: ${name}`);
